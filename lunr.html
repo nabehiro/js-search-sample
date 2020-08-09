@@ -1,0 +1,102 @@
+<html>
+
+<head>
+  <style>
+    pre {
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    h2 {
+      color: blueviolet;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>JS search sample</h1>
+
+  <main id="app">
+    <section>
+      <h2>Lunr <small><a href="fuse.html">fuse</a></small></h2>
+      <input type="text" v-model="pattern" @keydown.enter="search" />
+      <button @click="search">Search</button>
+      <hr>
+      <p>
+        <strong>{{ itemCount }}</strong> 件
+      </p>
+      <div id="result">
+        <div v-for="item in displayItems" :key="item.refIndex">
+          <h3>{{ item.ref }}</h3>
+          <p>index:{{ item.refIndex }} score:{{ item.score }}</p>
+          <pre>{{ item.metadata }}</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.js"></script>
+  <script src="https://unpkg.com/lunr/lunr.js"></script>
+  <script src="../lunr.stemmer.support.js"></script>
+  <script src="../tinyseg.js"></script>
+  <script src="../lunr.ja.js"></script>
+  
+
+  <script type="module">
+    import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js'
+    import contents from '../sanshiro.js'
+
+    Vue.config.devtools = true;
+
+    var idx = lunr(function () {
+
+      this.ref('Id');
+      this.field('Sentence');
+
+      this.use(lunr.ja);
+
+      contents.forEach(function (c) {
+        this.add(c)
+      }, this)
+    });
+
+    let markInstance = null;
+
+    const app = new Vue({
+      el: '#app',
+      data: {
+        pattern: "",
+        result: []
+      },
+      computed: {
+        itemCount() {
+          return this.result.length;
+        },
+        displayItems() {
+          return this.result.slice(0, 10);
+        }
+      },
+      methods: {
+        search() {
+          this.result = idx.search(this.pattern);
+          console.log(this.result);
+
+          setTimeout(() => { this.mark(); }, 0);
+        },
+        mark() {
+          const pattern = this.pattern;
+
+          if (markInstance) {
+            markInstance.unmark();
+          }
+
+          markInstance = new Mark(document.querySelector("#result"));
+          markInstance.mark(pattern);
+        }
+      }
+    });
+
+  </script>
+</body>
+
+</html>

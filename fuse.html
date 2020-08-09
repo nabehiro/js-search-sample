@@ -1,0 +1,106 @@
+<html>
+
+<head>
+  <style>
+    pre {
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    h2 {
+      color: blueviolet;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>JS search sample</h1>
+
+  <main id="app">
+    <section>
+      <h2>Fuse <small><a href="lunr.html">lunr</a></small></h2>
+      
+      <input type="text" v-model="pattern" @keydown.enter="search" />
+      <button @click="search">Search</button>
+      <hr>
+      <p>
+        <strong>{{ itemCount }}</strong> 件
+      </p>
+      <div id="result">
+        <div v-for="item in displayItems" :key="item.refIndex">
+          <h3>{{ item.item.Id }}</h3>
+          <p>index:{{ item.refIndex }} score:{{ item.score }}</p>
+          <pre>{{ item.item.Sentence }}</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/mark.js@8.11.1/dist/mark.js"></script>
+  <script type="module">
+    import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@6.4.1/dist/fuse.esm.js'
+    import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js'
+    import contents from '../sanshiro.js'
+
+    Vue.config.devtools = true;
+
+    const options = {
+      // isCaseSensitive: false,
+      includeScore: true,
+      // shouldSort: true,
+      // includeMatches: false,
+      // findAllMatches: false,
+      // minMatchCharLength: 1,
+      // location: 0,
+      threshold: 0.3,
+      distance: 5000,
+      // useExtendedSearch: false,
+      // ignoreLocation: false,
+      // ignoreFieldNorm: false,
+      keys: [
+        'Sentence'
+      ]
+    };
+
+    const fuse = new Fuse(contents, options);
+
+    let markInstance = null;
+
+    const app = new Vue({
+      el: '#app',
+      data: {
+        pattern: "",
+        result: []
+      },
+      computed: {
+        itemCount() {
+          return this.result.length;
+        },
+        displayItems() {
+          return this.result.slice(0, 10);
+        }
+      },
+      methods: {
+        search() {
+          this.result = fuse.search(this.pattern);
+          console.log(this.result);
+
+          setTimeout(() => { this.mark(); }, 0);
+        },
+        mark() {
+          const pattern = this.pattern;
+
+          if (markInstance) {
+            markInstance.unmark();
+          }
+
+          markInstance = new Mark(document.querySelector("#result"));
+          markInstance.mark(pattern);
+        }
+      }
+    });
+
+  </script>
+</body>
+
+</html>
