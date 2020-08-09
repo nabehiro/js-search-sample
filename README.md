@@ -1,4 +1,4 @@
-Fuse.js and lunr.js sample
+# Fuse.js and lunr.js sample
 
 青空文庫の三四郎をもとに検証。
 
